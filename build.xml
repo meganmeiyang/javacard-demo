@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+convert a simple javacard applet
+`ant make-cap` is to convert javacard applet class to CAP
+
+**ignore clean
+-->
+
+<!-- Note: FOLLOWING SPECIFIES THE PROJECT NAME FOR THE JAVA CARD APPLICATION -->
+<project basedir="." default="make-cap" name="javacard-demo">
+	<!--echo message="system ant.home=${ant.home}"/-->
+	<!--echo message="system jc.home=${jc.home}"/-->
+	<!--Change to your ant home accordingly-->
+	<property name="ant.new.home" location="/Users/meiyang/apache-ant-1.10.10"/>
+	<echo message="new ant.new.home=${ant.new.home}" />
+	<!--check if the classfile is the latest-->
+	<scriptdef name="file.mdate" language="javascript"> 
+	    <attribute name="file"/> 
+	    <attribute name="property"/> 
+	        file_name = attributes.get("file"); 
+	        property_to_set = attributes.get("property");
+
+	        file = new java.io.File(file_name); 
+	        file_date = file.lastModified();
+
+	        date_format = new java.text.SimpleDateFormat("EEE, dd MMM YYYY HH:mm:ss zzz");
+	        formated_date = date_format.format(new java.util.Date(file_date));
+	        project.setNewProperty(property_to_set, formated_date);
+	</scriptdef> 
+	<property name="file.name" location="./bin/com/meiyang/javacard/demo/JCDemo.class"/>
+	<file.mdate file="${file.name}" property="file.modified.date" />
+	
+	<echo message="The file ${file.name}" />
+	<echo message="was modified on ${file.modified.date}" />
+	
+	<property name="cap.output" value="JcDemo.cap" />
+	<!--jc305u3_kit is right in the project foler-->
+	<property name="jckit" location="jc305u3_kit"/>
+	<property name="destination.folder" location="/Users/meiyang/Library/Mobile Documents/com~apple~CloudDocs/JavaCardDevelopment/gp"/>
+	<property name="exps" location="${jckit}/api_export_files"/>
+	<!--Make sure ant-javacard.jar is placed in ant.home/lib along with other ant jars-->
+	<taskdef name="javacard" classname="pro.javacard.ant.JavaCard" classpath="${ant.new.home}/lib/ant-javacard.jar"/>
+	
+	<javacard jckit="${jckit}">
+		<!--feel free to change your package AID-->
+	  <cap aid="0102030405" package="com.meiyang.javacard.demo" version="0.1" output="${cap.output}" classes="bin" export="mylib">
+	    <!--feel free to change your Applet AID-->
+	  	<applet class="JCDemo" aid="0102030405060708"/>
+	  </cap>
+	</javacard>
+	<target name="make-cap">
+		<javacard/>
+		<echo message="moving ${cap.output} to ${destination.folder} ..." />
+		<!-- move the cap to gp.jar folder for installation -->
+		<move file="${cap.output}" todir="${destination.folder}" />
+		<echo message="done" />
+	</target>
+
+	<!-- CLIENT -->
+
+	<target name="clean-applet">
+		<delete dir="${applet.builddir}"/>
+		<delete dir="${applet.deploydir}"/>
+	</target>
+
+
+	
+
+	<!-- OTHER -->
+	<target name="clean" depends="clean-applet"/>
+
+	
+	<!--target name="help">
+		<echo message="build-applet:   Builds the Java Card applet"/>
+		<echo message="verify-applet:  Optionally converts and verifies the applet"/>
+		<echo message="deploy-applet:  Converts and deploys the applet"/>
+		<echo message="run-script:     Runs the applet with a script file after deployed"/>
+		<echo message="install-applet: Cleans, builds and deploys the applet and runs the installer-script on it"/>
+		<echo message="start-cad:      Starts CAD simulator after applet deployed"/>
+		<echo message="build-host:     Builds the host application"/>
+		<echo message="run-host:       Runs the host application once built and CAD started"/>
+		<echo message="clean:          Removes all class files"/>
+		
+	</target-->
+</project>
